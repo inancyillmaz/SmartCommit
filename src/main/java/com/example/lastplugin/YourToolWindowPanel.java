@@ -1,7 +1,6 @@
 package com.example.lastplugin;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vcs.VcsException;
 import com.intellij.openapi.vcs.VcsNotifier;
 import com.intellij.openapi.vcs.changes.Change;
@@ -11,10 +10,14 @@ import com.intellij.openapi.vcs.changes.LocalChangeList;
 import com.intellij.openapi.vcs.changes.ui.CommitChangeListDialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -60,7 +63,9 @@ public class YourToolWindowPanel extends JPanel {
         processChangedLines();
 
         LocalChangeList initialSelection = changeListManager.getDefaultChangeList();
-        CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, "Commit Changes Noluyo Olum");
+
+       // String body =  sentARequest();
+        CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, "body");
     }
 
     private void processChangedLines() {
@@ -122,8 +127,85 @@ public class YourToolWindowPanel extends JPanel {
                             lineNumberAfter += lines.length - 1;
                         }
                     }
+
                 }
             }
         }
+    }
+
+    private String sentARequest() {
+
+        URL url = null; // Replace with the URL you want to send the request to
+        try {
+            url = new URL("https://api.openai.com/v1/chat/completions");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) url.openConnection();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJjb2RleGZsb3dzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlfSwiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS9hdXRoIjp7InVzZXJfaWQiOiJ1c2VyLWpQYXYzVHJua0hMeTJ4U0VEMTNKcW9MSSJ9LCJpc3MiOiJodHRwczovL2F1dGgwLm9wZW5haS5jb20vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwxMDU2Mjg2NDMwMzMxNzY5MDM0MzgiLCJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSIsImh0dHBzOi8vb3BlbmFpLm9wZW5haS5hdXRoMGFwcC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNjgyOTM5NTEyLCJleHAiOjE2ODQxNDkxMTIsImF6cCI6IlRkSkljYmUxNldvVEh0Tjk1bnl5d2g1RTR5T282SXRHIiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBtb2RlbC5yZWFkIG1vZGVsLnJlcXVlc3Qgb3JnYW5pemF0aW9uLnJlYWQgb2ZmbGluZV9hY2Nlc3MifQ.2hsT4BZsUFzENLWBFvkBveBLOZYrxtdjYmvgwD1ZTwAG4GiIhlVLakQJXQIW2BmsA249FdIph6KCGComJHalVB3qy1ZBKuX3FglEx2DBJtcC9scbL1eDZ15FrTyJBGYUML-PlUMv-9DQ5o_gjvrQOlHoXvVYao92vL08XCv_hvx9HkNvLH8iz34FajsU5YHV290QMgKns2hXkDeu00VKHx6O0GOBGi0TmM_lfpf_1PxCoVWWuYl19CZ9zGYWwWcW6bu8XQtHdHVdJN2AGMetdt2ue0oFGL4dVS5XgPtTfYoJH4AIvPKBncshiY86gLUhrBR7n4QzIYxT91O7OGNi4g");
+        try {
+            conn.setRequestMethod("POST");
+        } catch (ProtocolException e) {
+            throw new RuntimeException(e);
+        }
+        conn.setDoOutput(true);
+
+// Set the request body
+        String requestBody = "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"Where was it played?\"}]}";
+        OutputStream os = null;
+        try {
+            os = conn.getOutputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            os.write(requestBody.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            os.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            os.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+// Read the response
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String inputLine;
+        StringBuilder response = new StringBuilder();
+        while (true) {
+            try {
+                if ((inputLine = in.readLine()) == null) break;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            response.append(inputLine);
+        }
+        try {
+            in.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+// Use the response
+        return response.toString();
+
+
     }
 }
