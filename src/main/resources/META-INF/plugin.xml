@@ -40,7 +40,7 @@
 
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="YourToolWindowId"
+        <toolWindow id="Smart Commit"
                     anchor="left"
                     factoryClass="com.example.lastplugin.YourToolWindowFactory"/>
     </extensions>
