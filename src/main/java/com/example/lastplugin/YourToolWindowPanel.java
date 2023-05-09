@@ -8,6 +8,8 @@ import com.intellij.openapi.vcs.changes.ChangeListManager;
 import com.intellij.openapi.vcs.changes.ContentRevision;
 import com.intellij.openapi.vcs.changes.LocalChangeList;
 import com.intellij.openapi.vcs.changes.ui.CommitChangeListDialog;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -61,11 +63,13 @@ public class YourToolWindowPanel extends JPanel {
             return;
         }
         processChangedLines();
-
+       CommitMessageGenerator tmp = new CommitMessageGenerator();
+       tmp.getChangeDataFromChangeListManager(project);
+       String prompt = tmp.createAIPromptFromChangeDataList(tmp.getChangeDataFromChangeListManager(project));
         LocalChangeList initialSelection = changeListManager.getDefaultChangeList();
 
-       // String body =  sentARequest();
-        CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, "body");
+        String body =  sentARequest(prompt);
+        CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, extractContent(body));
     }
 
     private void processChangedLines() {
@@ -127,13 +131,12 @@ public class YourToolWindowPanel extends JPanel {
                             lineNumberAfter += lines.length - 1;
                         }
                     }
-
                 }
             }
         }
     }
 
-    private String sentARequest() {
+    private String sentARequest(String prompt) {
 
         URL url = null; // Replace with the URL you want to send the request to
         try {
@@ -157,15 +160,23 @@ public class YourToolWindowPanel extends JPanel {
         conn.setDoOutput(true);
 
 // Set the request body
-        String requestBody = "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"Where was it played?\"}]}";
-        OutputStream os = null;
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("model", "gpt-3.5-turbo");
+        JSONObject message = new JSONObject();
+        message.put("role", "user");
+        message.put("content", prompt);
+        JSONArray messagesArray = new JSONArray();
+        messagesArray.add(message);
+        requestBody.put("messages", messagesArray);
+
+       OutputStream os = null;
         try {
             os = conn.getOutputStream();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         try {
-            os.write(requestBody.getBytes());
+            os.write(requestBody.toString().getBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -208,4 +219,17 @@ public class YourToolWindowPanel extends JPanel {
 
 
     }
+
+    public String extractContent(String jsonString) {
+        String contentKey = "\"content\":\"";
+        int contentStartIndex = jsonString.indexOf(contentKey) + contentKey.length();
+        int contentEndIndex = jsonString.indexOf("\"", contentStartIndex);
+
+        if (contentStartIndex < contentKey.length() || contentEndIndex == -1) {
+            return null; // content key not found or improperly formatted
+        }
+
+        return jsonString.substring(contentStartIndex, contentEndIndex);
+    }
+
 }
