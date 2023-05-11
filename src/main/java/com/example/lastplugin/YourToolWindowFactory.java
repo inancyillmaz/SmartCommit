@@ -23,6 +23,7 @@ public class YourToolWindowFactory implements ToolWindowFactory, ToolWindowManag
         panel.addAncestorListener(new AncestorListener() {
             @Override
             public void ancestorAdded(AncestorEvent event) {
+                /*
                 String lastActiveToolWindowId = ToolWindowManager.getInstance(project).getLastActiveToolWindowId();
                 if (lastActiveToolWindowId != null) {
                     ToolWindow lastActiveToolWindow = ToolWindowManager.getInstance(project).getToolWindow(lastActiveToolWindowId);
@@ -30,6 +31,8 @@ public class YourToolWindowFactory implements ToolWindowFactory, ToolWindowManag
                         lastActiveToolWindow.activate(null);
                     }
                 }
+
+                 */
                 panel.openContent();
             }
 
