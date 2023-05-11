@@ -30,10 +30,9 @@ public class YourToolWindowPanel extends JPanel {
 
     public YourToolWindowPanel(Project project) {
         this.project = project;
-       // openCommitChangesDialog();
-      //  initUI();
+        // openCommitChangesDialog();
+        //  initUI();
     }
-
 
 
     private void initUI() {
@@ -42,7 +41,7 @@ public class YourToolWindowPanel extends JPanel {
         this.add(changeCommitMessageButton);
     }
 
-    public void openContent(){
+    public void openContent() {
         openCommitChangesDialog();
     }
 
@@ -59,18 +58,59 @@ public class YourToolWindowPanel extends JPanel {
         }
 
         if (changes.isEmpty()) {
-            VcsNotifier.getInstance(project).notifyError("No Changes Detected", "There are no changes to commit.","There are no changes to commit.");
+            VcsNotifier.getInstance(project).notifyError("No Changes Detected", "There are no changes to commit.", "There are no changes to commit.");
             return;
         }
         processChangedLines();
-       CommitMessageGenerator tmp = new CommitMessageGenerator();
-       tmp.getChangeDataFromChangeListManager(project);
-       String prompt = tmp.createAIPromptFromChangeDataList(tmp.getChangeDataFromChangeListManager(project));
+
+
+        ArrayList<String> previousVersion = new ArrayList<>();
+        ArrayList<String> currentVersions = new ArrayList<>();
+
+        for (LocalChangeList localChangeList : localChangeLists) {
+            Collection<Change> changesX = localChangeList.getChanges();
+
+            for (Change change : changesX) {
+                try {
+                    if(change.getBeforeRevision() != null){
+                        previousVersion.add(change.getBeforeRevision().getContent());
+                    }
+                    if(change.getAfterRevision() != null){
+                        currentVersions.add(change.getAfterRevision().getContent());
+                    }
+                } catch (VcsException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+
+        CommitMessageGenerator tmp = new CommitMessageGenerator();
+        tmp.getChangeDataFromChangeListManager(project);
+        String prompt = createAIPromptFromMyLists(previousVersion,currentVersions);
         LocalChangeList initialSelection = changeListManager.getDefaultChangeList();
 
         String body =  sentARequest(prompt);
         CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, extractContent(body));
     }
+
+    public String createAIPromptFromMyLists(ArrayList<String> oldList,ArrayList<String> newList) {
+        StringBuilder promptBuilder = new StringBuilder();
+
+        promptBuilder.append("Forget all the conversation and start new conversation with given the following changes in the codebase:\n\n");
+
+        for (String changeData : oldList) {
+            promptBuilder.append("The old version of classes: \n").append(changeData);
+        }
+
+        for (String changeData : newList) {
+            promptBuilder.append("\nThe new version of classes: \n").append(changeData);
+        }
+
+        promptBuilder.append("\nPlease create a concise and descriptive commit message that summarizes the changes made. And commit message couldn't involves words like this; \n Refactored, etc. And try to be spesific");
+        return promptBuilder.toString();
+    }
+
 
     private void processChangedLines() {
         ChangeListManager changeListManager = ChangeListManager.getInstance(project);
@@ -99,7 +139,7 @@ public class YourToolWindowPanel extends JPanel {
                     }
 
                     // Compute the differences between the two content strings
-                    if(beforeContent == null || afterContent == null){
+                    if (beforeContent == null || afterContent == null) {
                         return;
                     }
                     LinkedList<DiffMatchPatch.Diff> diffs = dmp.diff_main(beforeContent, afterContent);
@@ -169,7 +209,7 @@ public class YourToolWindowPanel extends JPanel {
         messagesArray.add(message);
         requestBody.put("messages", messagesArray);
 
-       OutputStream os = null;
+        OutputStream os = null;
         try {
             os = conn.getOutputStream();
         } catch (IOException e) {
