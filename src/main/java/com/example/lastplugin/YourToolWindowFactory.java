@@ -11,14 +11,17 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class YourToolWindowFactory implements ToolWindowFactory, ToolWindowManagerListener {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         YourToolWindowPanel panel = new YourToolWindowPanel(project);
-        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+        ContentFactory contentFactory = project.getService(ContentFactory.class);
         Content content = contentFactory.createContent(panel, "", false);
+        final AtomicInteger hasOpenedContent = new AtomicInteger(0);
 
         panel.addAncestorListener(new AncestorListener() {
             @Override
@@ -31,9 +34,13 @@ public class YourToolWindowFactory implements ToolWindowFactory, ToolWindowManag
                         lastActiveToolWindow.activate(null);
                     }
                 }
-
                  */
-                panel.openContent();
+
+                if(hasOpenedContent.get() <2){
+                    hasOpenedContent.set(hasOpenedContent.get()+1);
+                }else {
+                    panel.openContent();
+                }
             }
 
             @Override

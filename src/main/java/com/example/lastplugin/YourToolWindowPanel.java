@@ -1,5 +1,8 @@
 package com.example.lastplugin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.VcsException;
 import com.intellij.openapi.vcs.VcsNotifier;
@@ -18,8 +21,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -46,7 +48,11 @@ public class YourToolWindowPanel extends JPanel {
     }
 
     public void initMyUi() {
-        Border padding = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+        LocalStorage myLocal = new LocalStorage();
+        String accessToken = myLocal.loadValue("myKey");
+        Boolean acceptTerms = myLocal.loadValueAcceptTerms("acceptTerms");
+
+        Border padding = BorderFactory.createEmptyBorder(10, 10, 10, 20);
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         setBorder(padding);
 
@@ -65,8 +71,10 @@ public class YourToolWindowPanel extends JPanel {
         add(linkLabel1);
         addEmptyLines();
 
+
 // Second link
         add(new JLabel("Next, you'll need to obtain an access token. Simply follow this link, then copy the token you're provided with:"));
+        addEmptyLines();
         JLabel linkLabel2 = new JLabel("<html><u>Get Your Access Token</u></html>");
         linkLabel2.setForeground(JBColor.cyan);
         linkLabel2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -80,21 +88,25 @@ public class YourToolWindowPanel extends JPanel {
         addEmptyLines();
 
 // Note
-        add(new JLabel("Once you've obtained your access token, please paste it into the provided field below."));
+        add(new JLabel("Once you've obtained your access token, please paste all the result into the provided field below."));
         addEmptyLines();
 
 // Text field
-        JTextField textField = new JTextField();
-        Dimension maxDimension = new Dimension(Integer.MAX_VALUE, 60); // Width is MAX_VALUE, height is 30
+        JTextArea textArea = new JTextArea();
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        Dimension maxDimension = new Dimension(Integer.MAX_VALUE, 80); // Width is MAX_VALUE, height is 80
         Border margin = JBUI.Borders.empty(5, 15);
-        textField.setBorder(new CompoundBorder(textField.getBorder(), margin));
-        textField.setMaximumSize(maxDimension);
-        textField.setAlignmentX(Component.LEFT_ALIGNMENT);  // add this line
-        add(textField);
+        textArea.setBorder(new CompoundBorder(textArea.getBorder(), margin));
+        textArea.setMaximumSize(maxDimension);
+        textArea.setAlignmentX(Component.LEFT_ALIGNMENT);  // add this line
+        textArea.setText(accessToken);
+        add(textArea);
+
 
 // Checkboxes
         JCheckBox checkBox1 = new JCheckBox("By proceeding, I acknowledge and agree that any changes I make to the code lines or classes may be communicated to OpenAI.");
-
+        checkBox1.setSelected(acceptTerms);
         addEmptyLines();
         add(checkBox1);
         addEmptyLines();
@@ -103,11 +115,41 @@ public class YourToolWindowPanel extends JPanel {
         JLabel warningLabel = new JLabel("In order to utilize this plugin, you might be required to provide your billing information to OpenAI.");
         warningLabel.setForeground(JBColor.ORANGE); // Set the text color to orange
         add(warningLabel);
-
         addEmptyLines();
-        JButton button = new JButton("Start");
-        add(button);
+        JButton button = new JButton("Smart Commit");
+        Box buttonBox = Box.createHorizontalBox();
+        buttonBox.add(Box.createHorizontalGlue());
+        buttonBox.add(button);
+        buttonBox.add(Box.createHorizontalGlue());
 
+        add(buttonBox);
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if(accessToken == null){
+                    String accessToken;
+                    try {
+                        accessToken = getAccessToken(textField.getText());
+                    } catch (JsonProcessingException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    myLocal.saveValue("myKey", accessToken);
+                }
+                if(accessToken != null && checkBox1.isSelected()){
+                    openContent();
+                }
+            }
+        });
+
+        button.setEnabled(checkBox1.isSelected());
+        checkBox1.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                myLocal.saveTerms("acceptTerms",true);
+                button.setEnabled(true);
+            } else {
+                button.setEnabled(false);
+                myLocal.saveTerms("acceptTerms",false);
+            }
+        });
     }
 
     private void openWebURL(String url) {
@@ -118,10 +160,15 @@ public class YourToolWindowPanel extends JPanel {
         }
     }
 
+    public static String getAccessToken(String jsonString) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(jsonString);
+        return jsonNode.get("accessToken").asText();
+    }
+
     public void setText(String text) {
         repaint(); // Repaint the panel to update the displayed text
     }
-
 
     private void initUI() {
         JButton changeCommitMessageButton = new JButton("Smart Commit");
@@ -129,9 +176,20 @@ public class YourToolWindowPanel extends JPanel {
         this.add(changeCommitMessageButton);
     }
 
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(400, super.getPreferredSize().height);
+    }
+
+
     public void openContent() {
-        VcsNotifier.getInstance(project).notifyImportantInfo("Commit Message Calculating", "Commit message calculating", "Commit message calculating");
-    //    openCommitChangesDialog();
+        LocalStorage myLocal = new LocalStorage();
+        String accessToken = myLocal.loadValue("myKey");
+        Boolean acceptTerms = myLocal.loadValueAcceptTerms("acceptTerms");
+        if(accessToken != null && acceptTerms){
+            VcsNotifier.getInstance(project).notifyImportantInfo("Commit Message Calculating", "We are generating a commit message for you", "");
+          //  openCommitChangesDialog();
+        }
     }
 
     private void openCommitChangesDialog() {
