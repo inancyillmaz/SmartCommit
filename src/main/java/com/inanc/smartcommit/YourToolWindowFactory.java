@@ -17,7 +17,7 @@ public class YourToolWindowFactory implements ToolWindowFactory, ToolWindowManag
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         YourToolWindowPanel panel = new YourToolWindowPanel(project);
-        ContentFactory contentFactory = project.getService(ContentFactory.class);
+        ContentFactory contentFactory = ContentFactory.getInstance();
         Content content = contentFactory.createContent(panel, "", false);
         final AtomicInteger hasOpenedContent = new AtomicInteger(0);
 

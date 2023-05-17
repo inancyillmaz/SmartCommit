@@ -30,6 +30,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class YourToolWindowPanel extends JPanel {
     private Project project;
@@ -236,32 +240,48 @@ public class YourToolWindowPanel extends JPanel {
         String prompt = createAIPromptFromMyLists(previousVersion, currentVersions);
         LocalChangeList initialSelection = changeListManager.getDefaultChangeList();
 
-        new Thread(new Runnable() {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<String> future = executorService.submit(new Callable<String>() {
             @Override
-            public void run() {
+            public String call() throws Exception {
                 int wordCount = 0;
                 for (String changeData : previousVersion) {
-                    wordCount+=countWords(changeData);
+                    wordCount += countWords(changeData);
                 }
                 for (String changeData : currentVersions) {
-                    wordCount+=countWords(changeData);
+                    wordCount += countWords(changeData);
                 }
 
-                if(wordCount <=4500){
-                    final String body = sentARequest(prompt,accessToken);
+                if(wordCount <= 4500){
+                    return sentARequest(prompt, accessToken);
+                } else {
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
-                            CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, extractContent(body));
+                            VcsNotifier.getInstance(project).notifyError("Commit Message Error", "The changes made to the classes are very extensive", "");
                         }
                     });
-                }else {
-                    VcsNotifier.getInstance(project).notifyError("Commit Message Error", "The changes made to the classes are very extensive", "");
+                    return null;
                 }
-
-
             }
-        }).start();
+        });
+
+        try {
+            final String body = future.get();  //get result of computation
+            if(body != null){
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, extractContent(body));
+                    }
+                });
+            }
+        } catch (Exception e) {
+            // handle the exceptions
+        } finally {
+            executorService.shutdown();
+        }
+
 
     }
 

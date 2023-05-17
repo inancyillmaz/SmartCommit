@@ -28,10 +28,12 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("221")
-        untilBuild.set("231.*")
+        sinceBuild.set("221") // Compatible from Android Studio Flamingo | 2022.2.1 Patch 1
+        untilBuild.set("223.*") // Compatible up to any 2022.3.* version
     }
 
+
+    /*
     signPlugin {
         certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
         privateKey.set(System.getenv("PRIVATE_KEY"))
@@ -41,4 +43,6 @@ tasks {
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
     }
+
+     */
 }
