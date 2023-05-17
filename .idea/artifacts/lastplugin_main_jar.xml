@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="lastplugin.main:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/lastplugin_main_jar</output-path>
+    <root id="archive" name="lastplugin.main_jar.jar">
+      <element id="archive" name="lastplugin.main.jar">
+        <element id="module-output" name="lastplugin.main" />
+      </element>
+    </root>
+  </artifact>
+</component>

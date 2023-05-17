@@ -5,7 +5,7 @@
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>smart-commit</name>
+    <name>Smart-Commit</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="inancyillmaz@gmail.com" url="https://www.linkedin.com/in/inancyillmaz/">Inanc Yilmaz</vendor>
@@ -31,9 +31,6 @@ Whether you're a solo developer or part of a large team, our <strong>AI-Driven C
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
 
 
-
-
-
     <actions>
         <action id="ChangeCommitMessageAction"
                 class="com.inanc.smartcommit.ChangeCommitMessageAction"
@@ -49,7 +46,4 @@ Whether you're a solo developer or part of a large team, our <strong>AI-Driven C
                     anchor="left"
                     factoryClass="com.inanc.smartcommit.YourToolWindowFactory"/>
     </extensions>
-
-
-
 </idea-plugin>

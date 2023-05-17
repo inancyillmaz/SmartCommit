@@ -34,7 +34,7 @@ import java.util.List;
 public class YourToolWindowPanel extends JPanel {
     private Project project;
     private JLabel linkLabel;
-    private JTextField textField;
+    private JTextArea textArea;
 
     public YourToolWindowPanel(Project project) {
         this.project = project;
@@ -90,7 +90,7 @@ public class YourToolWindowPanel extends JPanel {
         addEmptyLines();
 
 // Text field
-        JTextArea textArea = new JTextArea();
+        textArea = new JTextArea();
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         Dimension maxDimension = new Dimension(Integer.MAX_VALUE, 80); // Width is MAX_VALUE, height is 80
@@ -124,13 +124,15 @@ public class YourToolWindowPanel extends JPanel {
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(accessToken == null){
-                    String accessToken;
-                    try {
-                        accessToken = getAccessToken(textField.getText());
-                    } catch (JsonProcessingException ex) {
-                        throw new RuntimeException(ex);
+                    if(textArea != null && textArea.getText() != null){
+                        String accessToken;
+                        try {
+                            accessToken = getAccessToken(textArea.getText());
+                        } catch (JsonProcessingException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        myLocal.saveValue("myKey", accessToken);
                     }
-                    myLocal.saveValue("myKey", accessToken);
                 }
                 if(accessToken != null && checkBox1.isSelected()){
                     openContent();
@@ -192,7 +194,7 @@ public class YourToolWindowPanel extends JPanel {
 
     private void openCommitChangesDialog(String accessToken) {
         ChangeListManager changeListManager = ChangeListManager.getInstance(project);
-        List<LocalChangeList> localChangeLists = changeListManager.getChangeListsCopy();
+        List<LocalChangeList> localChangeLists = changeListManager.getChangeLists();
         DiffMatchPatch dmp = new DiffMatchPatch();
 
         // Extract changes from LocalChangeLists
@@ -289,7 +291,7 @@ public class YourToolWindowPanel extends JPanel {
 
     private void processChangedLines() {
         ChangeListManager changeListManager = ChangeListManager.getInstance(project);
-        List<LocalChangeList> localChangeLists = changeListManager.getChangeListsCopy();
+        List<LocalChangeList> localChangeLists = changeListManager.getChangeLists();
         DiffMatchPatch dmp = new DiffMatchPatch();
 
         for (LocalChangeList localChangeList : localChangeLists) {
