@@ -1,4 +1,4 @@
-package com.example.lastplugin;
+package com.inanc.smartcommit;
 
 import java.util.prefs.Preferences;
 

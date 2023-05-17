@@ -1,4 +1,4 @@
-package com.example.lastplugin
+package com.inanc.smartcommit
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.CheckinProjectPanel

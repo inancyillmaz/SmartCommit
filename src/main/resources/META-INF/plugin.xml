@@ -1,22 +1,27 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>com.example.lastplugin</id>
+    <id>com.inanc.smartcommit</id>
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Lastplugin</name>
+    <name>smart-commit</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="support@yourcompany.com" url="https://www.yourcompany.com">YourCompany</vendor>
+    <vendor email="inancyillmaz@gmail.com" url="https://www.linkedin.com/in/inancyillmaz/">Inanc Yilmaz</vendor>
 
-    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
-  ]]></description>
+Elevate your coding workflow with our <strong>AI-Driven Commit Message Generator</strong> for all IntelliJ-based IDEs. This innovative plugin automates the often tedious task of crafting descriptive commit messages, freeing you up to focus on more critical coding tasks.<br>
+<ul>
+<li><strong>AI-Powered Messaging:</strong> Our tool uses advanced AI technology to generate context-specific commit messages based on your code changes.</li>
+<li><strong>Time-Saver:</strong> Automate the process of writing commit messages and save valuable time for problem-solving and coding.</li>
+<li><strong>Enhanced Readability:</strong> Our tool promotes a more efficient and readable version control history by providing concise, clear commit messages.</li>
+<li><strong>Easy Integration:</strong> Our plugin seamlessly integrates with all IntelliJ-based IDEs, offering an immediate boost to your workflow.</li>
+<li><strong>Customizable:</strong> Modify how verbose or technical your commit messages should be to align with your project's or team's style.</li>
+</ul>
+Whether you're a solo developer or part of a large team, our <strong>AI-Driven Commit Message Generator</strong> for IntelliJ IDEs is an essential tool to streamline your workflow and enhance version control transparency.
+]]></description>
+
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
@@ -31,7 +36,7 @@
 
     <actions>
         <action id="ChangeCommitMessageAction"
-                class="com.example.lastplugin.ChangeCommitMessageAction"
+                class="com.inanc.smartcommit.ChangeCommitMessageAction"
                 text="Change Commit Message"
                 description="Change the commit message without using Git commands directly">
             <add-to-group group-id="Vcs.MainMenu" anchor="last"/>
@@ -42,7 +47,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Smart Commit"
                     anchor="left"
-                    factoryClass="com.example.lastplugin.YourToolWindowFactory"/>
+                    factoryClass="com.inanc.smartcommit.YourToolWindowFactory"/>
     </extensions>
 
 

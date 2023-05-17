@@ -1,4 +1,4 @@
-package com.example.lastplugin;
+package com.inanc.smartcommit;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.UnnamedConfigurable;

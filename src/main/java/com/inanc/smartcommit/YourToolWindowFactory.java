@@ -1,9 +1,8 @@
-package com.example.lastplugin;
+package com.inanc.smartcommit;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -11,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class YourToolWindowFactory implements ToolWindowFactory, ToolWindowManagerListener {
