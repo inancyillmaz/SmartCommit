@@ -172,7 +172,7 @@ public class YourToolWindowPanel extends JPanel {
 
     private void initUI() {
         JButton changeCommitMessageButton = new JButton("Smart Commit");
-        changeCommitMessageButton.addActionListener(e -> openCommitChangesDialog());
+      //  changeCommitMessageButton.addActionListener(e -> openCommitChangesDialog());
         this.add(changeCommitMessageButton);
     }
 
@@ -188,11 +188,11 @@ public class YourToolWindowPanel extends JPanel {
         Boolean acceptTerms = myLocal.loadValueAcceptTerms("acceptTerms");
         if(accessToken != null && acceptTerms){
             VcsNotifier.getInstance(project).notifyImportantInfo("Commit Message Calculating", "We are generating a commit message for you", "");
-          //  openCommitChangesDialog();
+            openCommitChangesDialog(accessToken);
         }
     }
 
-    private void openCommitChangesDialog() {
+    private void openCommitChangesDialog(String accessToken) {
         ChangeListManager changeListManager = ChangeListManager.getInstance(project);
         List<LocalChangeList> localChangeLists = changeListManager.getChangeListsCopy();
         DiffMatchPatch dmp = new DiffMatchPatch();
@@ -239,16 +239,27 @@ public class YourToolWindowPanel extends JPanel {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                // Perform the network request off the EDT
-                final String body = sentARequest(prompt);
+                int wordCount = 0;
+                for (String changeData : previousVersion) {
+                    wordCount+=countWords(changeData);
+                }
+                for (String changeData : currentVersions) {
+                    wordCount+=countWords(changeData);
+                }
 
-                // Switch back to the EDT to update the UI
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, extractContent(body));
-                    }
-                });
+                if(wordCount <=4500){
+                    final String body = sentARequest(prompt,accessToken);
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            CommitChangeListDialog.commitChanges(project, changes, initialSelection, null, extractContent(body));
+                        }
+                    });
+                }else {
+                    VcsNotifier.getInstance(project).notifyError("Commit Message Error", "The changes made to the classes are very extensive", "");
+                }
+
+
             }
         }).start();
 
@@ -257,18 +268,24 @@ public class YourToolWindowPanel extends JPanel {
     public String createAIPromptFromMyLists(ArrayList<String> oldList, ArrayList<String> newList) {
         StringBuilder promptBuilder = new StringBuilder();
 
-        promptBuilder.append("Forget all the conversation and start new conversation with given the following changes in the codebase:\n\n");
+        promptBuilder.append("Forget all the conversation and please create a concise and descriptive commit message that summarizes the changes made.And commit message couldn't involves words like this;Refactored, etc. And try to be spesific; with given the following changes in the codebase:\n\n");
 
         for (String changeData : oldList) {
-            promptBuilder.append("The old version of classes: \n").append(changeData);
+            promptBuilder.append("\nThe old version of a class:\n").append(changeData);
         }
-
         for (String changeData : newList) {
-            promptBuilder.append("\nThe new version of classes: \n").append(changeData);
+            promptBuilder.append("\nThe new version of a class:\n").append(changeData);
         }
 
-        promptBuilder.append("\nPlease create a concise and descriptive commit message that summarizes the changes made. And commit message couldn't involves words like this; \n Refactored, etc. And try to be spesific");
         return promptBuilder.toString();
+    }
+
+    public static int countWords(String str) {
+        if (str == null || str.isEmpty()) {
+            return 0;
+        }
+        String[] words = str.trim().split("\\s+");
+        return words.length;
     }
 
 
@@ -336,7 +353,7 @@ public class YourToolWindowPanel extends JPanel {
         }
     }
 
-    private String sentARequest(String prompt) {
+    private String sentARequest(String prompt, String accessToken) {
 
         URL url = null; // Replace with the URL you want to send the request to
         try {
@@ -351,7 +368,7 @@ public class YourToolWindowPanel extends JPanel {
             throw new RuntimeException(e);
         }
         conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJjb2RleGZsb3dzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlfSwiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS9hdXRoIjp7InVzZXJfaWQiOiJ1c2VyLWpQYXYzVHJua0hMeTJ4U0VEMTNKcW9MSSJ9LCJpc3MiOiJodHRwczovL2F1dGgwLm9wZW5haS5jb20vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwxMDU2Mjg2NDMwMzMxNzY5MDM0MzgiLCJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSIsImh0dHBzOi8vb3BlbmFpLm9wZW5haS5hdXRoMGFwcC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNjgyOTM5NTEyLCJleHAiOjE2ODQxNDkxMTIsImF6cCI6IlRkSkljYmUxNldvVEh0Tjk1bnl5d2g1RTR5T282SXRHIiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBtb2RlbC5yZWFkIG1vZGVsLnJlcXVlc3Qgb3JnYW5pemF0aW9uLnJlYWQgb2ZmbGluZV9hY2Nlc3MifQ.2hsT4BZsUFzENLWBFvkBveBLOZYrxtdjYmvgwD1ZTwAG4GiIhlVLakQJXQIW2BmsA249FdIph6KCGComJHalVB3qy1ZBKuX3FglEx2DBJtcC9scbL1eDZ15FrTyJBGYUML-PlUMv-9DQ5o_gjvrQOlHoXvVYao92vL08XCv_hvx9HkNvLH8iz34FajsU5YHV290QMgKns2hXkDeu00VKHx6O0GOBGi0TmM_lfpf_1PxCoVWWuYl19CZ9zGYWwWcW6bu8XQtHdHVdJN2AGMetdt2ue0oFGL4dVS5XgPtTfYoJH4AIvPKBncshiY86gLUhrBR7n4QzIYxT91O7OGNi4g");
+        conn.setRequestProperty("Authorization", "Bearer " + accessToken);
         try {
             conn.setRequestMethod("POST");
         } catch (ProtocolException e) {
