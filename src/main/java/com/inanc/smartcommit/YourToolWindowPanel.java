@@ -50,7 +50,9 @@ public class YourToolWindowPanel extends JPanel {
     }
 
     public void initMyUi() {
+
         LocalStorage myLocal = new LocalStorage();
+     //   myLocal.removeValue("myKey");
         String accessToken = myLocal.loadValue("myKey");
         Boolean acceptTerms = myLocal.loadValueAcceptTerms("acceptTerms");
 
@@ -125,20 +127,18 @@ public class YourToolWindowPanel extends JPanel {
         buttonBox.add(Box.createHorizontalGlue());
 
         add(buttonBox);
+
+
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(accessToken == null){
-                    if(textArea != null && textArea.getText() != null){
-                        String accessToken;
-                        try {
-                            accessToken = getAccessToken(textArea.getText());
-                        } catch (JsonProcessingException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                        myLocal.saveValue("myKey", accessToken);
+                String chosenAccessToken = null;
+                if (accessToken == null || (textArea.getText() != null && !accessToken.equals(textArea.getText()))) {
+                    if (textArea.getText() != null) {
+                        chosenAccessToken = textArea.getText();
+                        myLocal.saveValue("myKey", chosenAccessToken);
                     }
                 }
-                if(accessToken != null && checkBox1.isSelected()){
+                if (chosenAccessToken != null && checkBox1.isSelected()) {
                     openContent();
                 }
             }
@@ -147,11 +147,11 @@ public class YourToolWindowPanel extends JPanel {
         button.setEnabled(checkBox1.isSelected());
         checkBox1.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                myLocal.saveTerms("acceptTerms",true);
+                myLocal.saveTerms("acceptTerms", true);
                 button.setEnabled(true);
             } else {
                 button.setEnabled(false);
-                myLocal.saveTerms("acceptTerms",false);
+                myLocal.saveTerms("acceptTerms", false);
             }
         });
     }
@@ -164,22 +164,6 @@ public class YourToolWindowPanel extends JPanel {
         }
     }
 
-    public static String getAccessToken(String jsonString) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(jsonString);
-        return jsonNode.get("accessToken").asText();
-    }
-
-    public void setText(String text) {
-        repaint(); // Repaint the panel to update the displayed text
-    }
-
-    private void initUI() {
-        JButton changeCommitMessageButton = new JButton("Smart Commit");
-      //  changeCommitMessageButton.addActionListener(e -> openCommitChangesDialog());
-        this.add(changeCommitMessageButton);
-    }
-
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(400, super.getPreferredSize().height);
@@ -190,7 +174,7 @@ public class YourToolWindowPanel extends JPanel {
         LocalStorage myLocal = new LocalStorage();
         String accessToken = myLocal.loadValue("myKey");
         Boolean acceptTerms = myLocal.loadValueAcceptTerms("acceptTerms");
-        if(accessToken != null && acceptTerms){
+        if (accessToken != null && acceptTerms) {
             VcsNotifier.getInstance(project).notifyImportantInfo("Commit Message Calculating", "We are generating a commit message for you", "");
             openCommitChangesDialog(accessToken);
         }
@@ -211,7 +195,7 @@ public class YourToolWindowPanel extends JPanel {
             VcsNotifier.getInstance(project).notifyError("No Changes Detected", "There are no changes to commit.", "There are no changes to commit.");
             return;
         }
-        processChangedLines();
+        //  processChangedLines();
 
 
         ArrayList<String> previousVersion = new ArrayList<>();
@@ -241,34 +225,31 @@ public class YourToolWindowPanel extends JPanel {
         LocalChangeList initialSelection = changeListManager.getDefaultChangeList();
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<String> future = executorService.submit(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                int wordCount = 0;
-                for (String changeData : previousVersion) {
-                    wordCount += countWords(changeData);
-                }
-                for (String changeData : currentVersions) {
-                    wordCount += countWords(changeData);
-                }
+        Future<String> future = executorService.submit(() -> {
+            int wordCount = 0;
+            for (String changeData : previousVersion) {
+                wordCount += countWords(changeData);
+            }
+            for (String changeData : currentVersions) {
+                wordCount += countWords(changeData);
+            }
 
-                if(wordCount <= 4500){
-                    return sentARequest(prompt, accessToken);
-                } else {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            VcsNotifier.getInstance(project).notifyError("Commit Message Error", "The changes made to the classes are very extensive", "");
-                        }
-                    });
-                    return null;
-                }
+            if (wordCount <= 4500) {
+                return sentARequest(prompt, accessToken);
+            } else {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        VcsNotifier.getInstance(project).notifyError("Commit Message Error", "The changes made to the classes are very extensive", "");
+                    }
+                });
+                return null;
             }
         });
 
         try {
             final String body = future.get();  //get result of computation
-            if(body != null){
+            if (body != null) {
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
@@ -277,7 +258,9 @@ public class YourToolWindowPanel extends JPanel {
                 });
             }
         } catch (Exception e) {
-            // handle the exceptions
+            System.out.println(e.toString());
+            VcsNotifier.getInstance(project).notifyError("Error", e.toString(), e.toString());
+
         } finally {
             executorService.shutdown();
         }

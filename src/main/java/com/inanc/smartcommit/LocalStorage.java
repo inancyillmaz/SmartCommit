@@ -11,6 +11,10 @@ public class LocalStorage {
         prefs.put(key, value);
     }
 
+    public void removeValue(String key){
+        prefs.remove(key);
+    }
+
     // Load a value
     public String loadValue(String key) {
         return prefs.get(key, null);  // null is the default value if key is not found
