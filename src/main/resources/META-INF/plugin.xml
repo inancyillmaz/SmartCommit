@@ -10,17 +10,7 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="inancyillmaz@gmail.com" url="https://www.linkedin.com/in/inancyillmaz/">Inanc Yilmaz</vendor>
 
-    <description><![CDATA[
-Elevate your coding workflow with our <strong>AI-Driven Commit Message Generator</strong> for all IntelliJ-based IDEs. This innovative plugin automates the often tedious task of crafting descriptive commit messages, freeing you up to focus on more critical coding tasks.<br>
-<ul>
-<li><strong>AI-Powered Messaging:</strong> Our tool uses advanced AI technology to generate context-specific commit messages based on your code changes.</li>
-<li><strong>Time-Saver:</strong> Automate the process of writing commit messages and save valuable time for problem-solving and coding.</li>
-<li><strong>Enhanced Readability:</strong> Our tool promotes a more efficient and readable version control history by providing concise, clear commit messages.</li>
-<li><strong>Easy Integration:</strong> Our plugin seamlessly integrates with all IntelliJ-based IDEs, offering an immediate boost to your workflow.</li>
-<li><strong>Customizable:</strong> Modify how verbose or technical your commit messages should be to align with your project's or team's style.</li>
-</ul>
-Whether you're a solo developer or part of a large team, our <strong>AI-Driven Commit Message Generator</strong> for IntelliJ IDEs is an essential tool to streamline your workflow and enhance version control transparency.
-]]></description>
+    <description>Our AI-Driven Commit Message Generator is a valuable tool for IntelliJ-based IDEs that automates the creation of context-specific commit messages. It saves time, enhances readability in version control history, easily integrates with IntelliJ IDEs, and allows customization to suit your style. It's designed to streamline your coding workflow, whether you're a solo developer or part of a larger team.</description>
 
 
     <!-- Product and plugin compatibility requirements.

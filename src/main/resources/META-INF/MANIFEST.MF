@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-Plugin-Id: com.inanc.smartcommit
-Plugin-Version: 1.0
-Plugin-Name: Smart-Commit
-Vendor: Inanc Yilmaz
