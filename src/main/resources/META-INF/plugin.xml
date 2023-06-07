@@ -24,6 +24,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Smart Commit"
                     anchor="left"
-                    factoryClass="com.inanc.smartcommit.YourToolWindowFactory"/>
+                    factoryClass="com.inanc.smartcommit.SmartCommitWindowFactory"/>
     </extensions>
 </idea-plugin>
