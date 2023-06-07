@@ -13,7 +13,7 @@ import javax.swing.event.AncestorListener
 class SmartCommitWindowFactory : ToolWindowFactory, ToolWindowManagerListener {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val panel = YourToolWindowPanel(project)
+        val panel = SmartCommitWindowPanel(project)
         val contentFactory = ContentFactory.getInstance()
         val content: Content = contentFactory.createContent(panel, "", false)
         val hasOpenedContent = AtomicInteger(0)
