@@ -10,7 +10,11 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="inancyillmaz@gmail.com" url="https://www.linkedin.com/in/inancyillmaz/">Inanc Yilmaz</vendor>
 
-    <description>Our AI-Driven Commit Message Generator is a valuable tool for IntelliJ-based IDEs that automates the creation of context-specific commit messages. It saves time, enhances readability in version control history, easily integrates with IntelliJ IDEs, and allows customization to suit your style. It's designed to streamline your coding workflow, whether you're a solo developer or part of a larger team.</description>
+    <description>Our AI-Driven Commit Message Generator is a valuable tool for IntelliJ-based IDEs that automates the
+        creation of context-specific commit messages. It saves time, enhances readability in version control history,
+        easily integrates with IntelliJ IDEs, and allows customization to suit your style. It's designed to streamline
+        your coding workflow, whether you're a solo developer or part of a larger team.
+    </description>
 
 
     <!-- Product and plugin compatibility requirements.
@@ -25,5 +29,13 @@
         <toolWindow id="Smart Commit"
                     anchor="left"
                     factoryClass="com.inanc.smartcommit.SmartCommitWindowFactory"/>
+
+        <applicationService
+                serviceInterface="com.inanc.smartcommit.domain.LocalPreferences"
+                serviceImplementation="com.inanc.smartcommit.data.LocalPreferenceImpl"/>
+
+        <applicationService
+                serviceInterface="com.inanc.smartcommit.domain.OpenAIService"
+                serviceImplementation="com.inanc.smartcommit.data.OpenAIServiceImpl"/>
     </extensions>
 </idea-plugin>
