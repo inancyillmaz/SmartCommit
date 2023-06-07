@@ -43,6 +43,5 @@ public class YourToolWindowFactory implements ToolWindowFactory, ToolWindowManag
         });
 
         toolWindow.getContentManager().addContent(content);
-
     }
 }

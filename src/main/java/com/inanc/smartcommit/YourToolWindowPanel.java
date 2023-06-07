@@ -1,14 +1,10 @@
 package com.inanc.smartcommit;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.VcsException;
 import com.intellij.openapi.vcs.VcsNotifier;
 import com.intellij.openapi.vcs.changes.Change;
 import com.intellij.openapi.vcs.changes.ChangeListManager;
-import com.intellij.openapi.vcs.changes.ContentRevision;
 import com.intellij.openapi.vcs.changes.LocalChangeList;
 import com.intellij.openapi.vcs.changes.ui.CommitChangeListDialog;
 import com.intellij.ui.JBColor;
@@ -28,9 +24,7 @@ import java.io.OutputStream;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -138,6 +132,7 @@ public class YourToolWindowPanel extends JPanel {
                         myLocal.saveValue("myKey", chosenAccessToken);
                     }
                 }
+                chosenAccessToken = myLocal.loadValue("myKey");
                 if (chosenAccessToken != null && checkBox1.isSelected()) {
                     openContent();
                 }
@@ -183,9 +178,7 @@ public class YourToolWindowPanel extends JPanel {
     private void openCommitChangesDialog(String accessToken) {
         ChangeListManager changeListManager = ChangeListManager.getInstance(project);
         List<LocalChangeList> localChangeLists = changeListManager.getChangeLists();
-        DiffMatchPatch dmp = new DiffMatchPatch();
 
-        // Extract changes from LocalChangeLists
         Collection<Change> changes = new ArrayList<>();
         for (LocalChangeList localChangeList : localChangeLists) {
             changes.addAll(localChangeList.getChanges());
@@ -195,8 +188,6 @@ public class YourToolWindowPanel extends JPanel {
             VcsNotifier.getInstance(project).notifyError("No Changes Detected", "There are no changes to commit.", "There are no changes to commit.");
             return;
         }
-        //  processChangedLines();
-
 
         ArrayList<String> previousVersion = new ArrayList<>();
         ArrayList<String> currentVersions = new ArrayList<>();
@@ -218,9 +209,6 @@ public class YourToolWindowPanel extends JPanel {
             }
         }
 
-
-        CommitMessageGenerator tmp = new CommitMessageGenerator();
-        tmp.getChangeDataFromChangeListManager(project);
         String prompt = createAIPromptFromMyLists(previousVersion, currentVersions);
         LocalChangeList initialSelection = changeListManager.getDefaultChangeList();
 
@@ -289,71 +277,6 @@ public class YourToolWindowPanel extends JPanel {
         }
         String[] words = str.trim().split("\\s+");
         return words.length;
-    }
-
-
-    private void processChangedLines() {
-        ChangeListManager changeListManager = ChangeListManager.getInstance(project);
-        List<LocalChangeList> localChangeLists = changeListManager.getChangeLists();
-        DiffMatchPatch dmp = new DiffMatchPatch();
-
-        for (LocalChangeList localChangeList : localChangeLists) {
-            Collection<Change> changes = localChangeList.getChanges();
-
-            for (Change change : changes) {
-                ContentRevision beforeRevision = change.getBeforeRevision();
-                ContentRevision afterRevision = change.getAfterRevision();
-
-                if (beforeRevision != null && afterRevision != null) {
-                    String beforeContent = null;
-                    try {
-                        beforeContent = beforeRevision.getContent();
-                    } catch (VcsException e) {
-                        throw new RuntimeException(e);
-                    }
-                    String afterContent = null;
-                    try {
-                        afterContent = afterRevision.getContent();
-                    } catch (VcsException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    // Compute the differences between the two content strings
-                    if (beforeContent == null || afterContent == null) {
-                        return;
-                    }
-                    LinkedList<DiffMatchPatch.Diff> diffs = dmp.diff_main(beforeContent, afterContent);
-                    dmp.diff_cleanupSemantic(diffs);
-
-                    // Process the differences to identify modified lines and their content
-                    int lineNumberBefore = 1;
-                    int lineNumberAfter = 1;
-
-                    for (DiffMatchPatch.Diff diff : diffs) {
-                        String[] lines = diff.text.split("\n");
-
-                        if (diff.operation == DiffMatchPatch.Operation.DELETE) {
-                            for (String line : lines) {
-                                if (!line.isEmpty()) {
-                                    System.out.printf("Line %d removed: %s%n", lineNumberBefore, line);
-                                }
-                                lineNumberBefore++;
-                            }
-                        } else if (diff.operation == DiffMatchPatch.Operation.INSERT) {
-                            for (String line : lines) {
-                                if (!line.isEmpty()) {
-                                    System.out.printf("Line %d added: %s%n", lineNumberAfter, line);
-                                }
-                                lineNumberAfter++;
-                            }
-                        } else {
-                            lineNumberBefore += lines.length - 1;
-                            lineNumberAfter += lines.length - 1;
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private String sentARequest(String prompt, String accessToken) {
@@ -433,11 +356,7 @@ public class YourToolWindowPanel extends JPanel {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-// Use the response
         return response.toString();
-
-
     }
 
     public String extractContent(String jsonString) {
@@ -448,8 +367,6 @@ public class YourToolWindowPanel extends JPanel {
         if (contentStartIndex < contentKey.length() || contentEndIndex == -1) {
             return null; // content key not found or improperly formatted
         }
-
         return jsonString.substring(contentStartIndex, contentEndIndex);
     }
-
 }
