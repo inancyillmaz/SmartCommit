@@ -117,9 +117,9 @@ class OpenAIServiceImpl : OpenAIService {
         val promptBuilder = StringBuilder()
 
         promptBuilder.append(
-            "Forget all the conversation and please create a concise and descriptive commit message" +
+            "Forget all the conversation and please create a concise and descriptive commit message in present tense" +
                 " that summarizes the changes made.And commit message couldn't involves words like this;" +
-                "Refactored, etc. And try to be spesific; with given the following changes in the codebase:\n\n"
+                "Refactored, Unnecessary, etc. And try to be specific; with given the following changes in the codebase:\n\n"
         )
 
         for (changeData in oldList) {
