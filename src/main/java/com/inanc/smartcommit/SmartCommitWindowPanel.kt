@@ -73,7 +73,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
             generateLabel(PluginBundle.message("logIntoOpenAi"))
         )
 
-        val lblLoginToOpenAi = createBrowsableLink(GPT_AUTH_LOGIN_URL) {
+        val lblLoginToOpenAi = createBrowsableLink(title = PluginBundle.message("htmlTitleLoginToOpenAI"),GPT_AUTH_LOGIN_URL) {
             project.notifyErrorMessage(
                 displayId = PluginBundle.message("error"),
                 title = it.orEmpty(),
@@ -91,7 +91,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
 
 
         addEmptyLines()
-        val lblAccessToken = createBrowsableLink(GPT_AUTH_SESSION_URL) {
+        val lblAccessToken = createBrowsableLink(PluginBundle.message("htmlTitleGetAccessToken"),GPT_AUTH_SESSION_URL) {
             project.notifyErrorMessage(
                 displayId = PluginBundle.message("error"),
                 title = it.orEmpty(),

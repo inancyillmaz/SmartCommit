@@ -8,8 +8,8 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JLabel
 
-fun createBrowsableLink(url: String, onError: (String?) -> Unit): JLabel {
-    val linkLabel1 = JLabel("<html><u>Log in to OpenAI</u></html>")
+fun createBrowsableLink(title : String,url: String, onError: (String?) -> Unit): JLabel {
+    val linkLabel1 = JLabel("<html><u>$title</u></html>")
     linkLabel1.foreground = JBColor.cyan
     linkLabel1.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
     linkLabel1.addMouseListener(object : MouseAdapter() {
