@@ -1,6 +1,7 @@
 package com.inanc.smartcommit.data
 
 import com.inanc.smartcommit.PluginBundle
+import com.inanc.smartcommit.data.exceptions.ApiExceptions
 import com.inanc.smartcommit.domain.LocalPreferences
 import com.inanc.smartcommit.domain.OpenAIService
 import com.inanc.smartcommit.domain.SHARED_PREF_ACCESS_TOKEN_KEY
@@ -24,22 +25,22 @@ class OpenAIServiceImpl : OpenAIService {
     private val localPreferences by lazy { service<LocalPreferences>() }
 
     @Suppress("CyclomaticComplexMethod")
-    override fun requestSmartCommitMessage(prompt: String, onError: (Throwable) -> Unit): String? {
+    override fun requestSmartCommitMessage(prompt: String, onError: (ApiExceptions) -> Unit): String? {
         val accessToken = localPreferences.getString(SHARED_PREF_ACCESS_TOKEN_KEY).extractAccessToken()
 
         val url: URL?
         try {
             url = URL(OPEN_AI_URL)
         } catch (e: MalformedURLException) {
-            onError(e)
+            onError(ApiExceptions.ApiExceptionsUnknown)
             return null
         }
 
         val httpURLConnection: HttpURLConnection?
         try {
             httpURLConnection = url.openConnection() as HttpURLConnection
-        } catch (e: IOException) {
-            onError(e)
+        } catch (_: IOException) {
+            onError(ApiExceptions.ApiExceptionsUnknown)
             return null
         }
 
@@ -47,8 +48,8 @@ class OpenAIServiceImpl : OpenAIService {
         httpURLConnection.setRequestProperty("Authorization", "Bearer $accessToken")
         try {
             httpURLConnection.requestMethod = "POST"
-        } catch (e: ProtocolException) {
-            onError(e)
+        } catch (_: ProtocolException) {
+            onError(ApiExceptions.ApiExceptionsUnknown)
             return null
         }
         httpURLConnection.doOutput = true
@@ -70,34 +71,34 @@ class OpenAIServiceImpl : OpenAIService {
         val outputStream: OutputStream?
         try {
             outputStream = httpURLConnection.outputStream
-        } catch (e: IOException) {
-            onError(e)
+        } catch (_: IOException) {
+            onError(createApiApiExceptions(httpURLConnection.responseCode))
             return null
         }
         try {
             outputStream.write(requestBody.toString().toByteArray())
-        } catch (e: IOException) {
-            onError(e)
+        } catch (_: IOException) {
+            onError(createApiApiExceptions(httpURLConnection.responseCode))
             return null
         }
         try {
             outputStream.flush()
-        } catch (e: IOException) {
-            onError(e)
+        } catch (_: IOException) {
+            onError(createApiApiExceptions(httpURLConnection.responseCode))
             return null
         }
         try {
             outputStream.close()
-        } catch (e: IOException) {
-            onError(e)
+        } catch (_: IOException) {
+            onError(createApiApiExceptions(httpURLConnection.responseCode))
             return null
         }
 
         val bufferedReader: BufferedReader?
         try {
             bufferedReader = BufferedReader(InputStreamReader(httpURLConnection.inputStream, "utf-8"))
-        } catch (e: IOException) {
-            onError(e)
+        } catch (_: IOException) {
+            onError(createApiApiExceptions(httpURLConnection.responseCode))
             return null
         }
 
@@ -108,8 +109,8 @@ class OpenAIServiceImpl : OpenAIService {
             while (bufferedReader.readLine().also { line = it } != null) {
                 stringBuilder.append(line).append("\n")
             }
-        } catch (e: IOException) {
-            onError(e)
+        } catch (_: IOException) {
+            onError(ApiExceptions.ApiExceptionsUnknown)
             return null
         }
 
@@ -131,5 +132,13 @@ class OpenAIServiceImpl : OpenAIService {
         }
 
         return promptBuilder.toString()
+    }
+
+    private fun createApiApiExceptions(code: Int): ApiExceptions {
+        return when (code) {
+            429 -> ApiExceptions.ApiExceptions429
+            401 -> ApiExceptions.ApiExceptions401
+            else -> ApiExceptions.ApiExceptionsUnknown
+        }
     }
 }

@@ -49,7 +49,7 @@ fun Project.notifyErrorMessage(displayId: String, title: String, message: String
         .notifyError(displayId, title, message)
 }
 
-fun Project.notifyNetworkErrorMessage(shouldInvokeLater: Boolean, message: String?) {
+fun Project.notifyNetworkErrorMessage(shouldInvokeLater: Boolean, message: String? = null) {
     notifyErrorMessage(
         displayId = "Network Error",
         title = "Network Error",
