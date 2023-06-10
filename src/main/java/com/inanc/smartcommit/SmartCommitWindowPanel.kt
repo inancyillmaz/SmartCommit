@@ -134,7 +134,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
             border = CompoundBorder(textArea.border, margin)
             alignmentX = Component.LEFT_ALIGNMENT
             text = accessToken
-            maximumSize = Dimension(500, 250)
+            preferredSize = Dimension(500, 150)
         }
 
         add(textArea)
