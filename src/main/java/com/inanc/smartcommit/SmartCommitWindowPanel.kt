@@ -66,12 +66,9 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
         border = padding
 
-        maximumSize = Dimension(300, 300)
+     //   maximumSize = Dimension(300, 300)
 
-
-        add(
-            generateLabel(PluginBundle.message("logIntoOpenAi"))
-        )
+        add(generateLabel(PluginBundle.message("logIntoOpenAi")))
 
         val lblLoginToOpenAi = createBrowsableLink(title = PluginBundle.message("htmlTitleLoginToOpenAI"),GPT_AUTH_LOGIN_URL) {
             project.notifyErrorMessage(
@@ -115,7 +112,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
             border = CompoundBorder(textArea.border, margin)
             alignmentX = Component.LEFT_ALIGNMENT
             text = accessToken
-            maximumSize = Dimension(400, 300)
+            maximumSize = Dimension(500, 250)
         }
 
         add(textArea)
