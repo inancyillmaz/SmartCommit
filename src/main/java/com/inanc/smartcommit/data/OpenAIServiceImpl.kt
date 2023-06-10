@@ -1,7 +1,7 @@
 package com.inanc.smartcommit.data
 
+import com.inanc.smartcommit.domain.AIService
 import com.inanc.smartcommit.domain.LocalPreferences
-import com.inanc.smartcommit.domain.OpenAIService
 import com.inanc.smartcommit.domain.SHARED_PREF_ACCESS_TOKEN_KEY
 import com.intellij.openapi.components.service
 import net.minidev.json.JSONArray
@@ -17,7 +17,7 @@ import java.net.URL
 
 private const val OPEN_AI_URL = "https://api.openai.com/v1/chat/completions"
 
-class OpenAIServiceImpl : OpenAIService {
+class OpenAIServiceImpl : AIService {
 
     private val localPreferences by lazy { service<LocalPreferences>() }
 
@@ -110,7 +110,17 @@ class OpenAIServiceImpl : OpenAIService {
             return null
         }
 
-        return stringBuilder.toString()
+        val body = stringBuilder.toString()
+
+        val contentKey = "\"content\":\""
+        val contentStartIndex = body.indexOf(contentKey) + contentKey.length
+        val contentEndIndex = body.indexOf("\"", contentStartIndex)
+
+        return if (contentStartIndex < contentKey.length || contentEndIndex == -1) {
+            null
+        } else {
+            body.substring(contentStartIndex, contentEndIndex)
+        }
     }
 
     override fun createAIPromptFromLists(oldList: ArrayList<String>, newList: ArrayList<String>): String {

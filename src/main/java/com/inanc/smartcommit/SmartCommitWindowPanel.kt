@@ -21,7 +21,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
 
     private val localPreferences by lazy { service<LocalPreferences>() }
 
-    private val openAIService by lazy { service<OpenAIService>() }
+    private val aiService by lazy { service<AIService>() }
 
     private val textArea: JTextArea by lazy {
         JTextArea()
@@ -211,7 +211,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
             }
         }
 
-        val prompt = openAIService.createAIPromptFromLists(oldList = previousVersion, newList = currentVersions)
+        val prompt = aiService.createAIPromptFromLists(oldList = previousVersion, newList = currentVersions)
         val initialSelection = changeListManager.defaultChangeList
         project.executeOnPooledThread("Smart Commit Running", threadExecuteListener) {
             var wordCount = 0
@@ -223,7 +223,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
             }
 
             if (wordCount <= MAX_WORD_COUNT) {
-                val body = openAIService.requestSmartCommitMessage(prompt) {
+                val body = aiService.requestSmartCommitMessage(prompt) {
                     project.notifyNetworkErrorMessage(
                         shouldInvokeLater = true
                     )
@@ -235,7 +235,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
                             /* changes = */ changes,
                             /* initialSelection = */ initialSelection,
                             /* executor = */ null,
-                            /* comment = */ body.extractContent()
+                            /* comment = */ body
                         )
                     }
                 }

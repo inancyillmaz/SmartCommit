@@ -22,15 +22,3 @@ fun String.openWebURL(onError: (errorMessage: String?) -> Unit) {
         onError(e.message)
     }
 }
-
-fun String.extractContent(): String? {
-    val contentKey = "\"content\":\""
-    val contentStartIndex = this.indexOf(contentKey) + contentKey.length
-    val contentEndIndex = this.indexOf("\"", contentStartIndex)
-
-    return if (contentStartIndex < contentKey.length || contentEndIndex == -1) {
-        null
-    } else {
-        this.substring(contentStartIndex, contentEndIndex)
-    }
-}
