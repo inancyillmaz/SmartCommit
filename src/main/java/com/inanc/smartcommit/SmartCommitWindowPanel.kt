@@ -13,7 +13,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ItemEvent
-import java.util.UUID
+import java.util.*
 import javax.swing.*
 import javax.swing.border.Border
 import javax.swing.border.CompoundBorder
@@ -34,12 +34,10 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
 
     private val threadExecuteListener = object : ThreadExecutionListener {
         override fun onStart() {
-            // start loading
             smartCommitButton.isEnabled = false
         }
 
         override fun onEnd() {
-            // end loading
             smartCommitButton.isEnabled = true
         }
 
@@ -68,6 +66,9 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
         border = padding
 
+        maximumSize = Dimension(300, 300)
+
+
         add(
             generateLabel(PluginBundle.message("logIntoOpenAi"))
         )
@@ -87,6 +88,8 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         add(
             JLabel(PluginBundle.message("accessTokenDescription"))
         )
+
+
         addEmptyLines()
         val lblAccessToken = createBrowsableLink(GPT_AUTH_SESSION_URL) {
             project.notifyErrorMessage(
@@ -104,16 +107,17 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         )
         addEmptyLines()
 
-        val maxDimension = Dimension(Int.MAX_VALUE, 80)
         val margin = JBUI.Borders.empty(5, 15)
+
         textArea.apply {
             lineWrap = true
             wrapStyleWord = true
             border = CompoundBorder(textArea.border, margin)
-            maximumSize = maxDimension
             alignmentX = Component.LEFT_ALIGNMENT
             text = accessToken
+            maximumSize = Dimension(400, 300)
         }
+
         add(textArea)
 
         val cbTerms = JCheckBox(PluginBundle.message("termsAndConditions"))
