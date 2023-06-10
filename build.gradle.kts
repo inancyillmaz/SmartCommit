@@ -14,6 +14,7 @@ plugins {
     id("org.jetbrains.changelog") version "1.3.1"
     // detekt linter - read more: https://detekt.github.io/detekt/kotlindsl.html
     id("io.gitlab.arturbosch.detekt") version "1.22.0"
+
 }
 
 group = properties("pluginGroup")
@@ -24,9 +25,8 @@ repositories {
     mavenCentral()
 }
 dependencies {
-
     testImplementation("org.assertj:assertj-core:3.24.2")
-
+    implementation("org.json:json:20230227")
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
 }
 

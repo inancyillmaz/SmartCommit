@@ -13,6 +13,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ItemEvent
+import java.util.UUID
 import javax.swing.*
 import javax.swing.border.Border
 import javax.swing.border.CompoundBorder
@@ -45,7 +46,8 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         override fun onError(error: Throwable) {
             smartCommitButton.isEnabled = true
             project.notifyNetworkErrorMessage(
-                shouldInvokeLater = true
+                shouldInvokeLater = true,
+                message = error.message
             )
         }
     }
@@ -133,16 +135,17 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         add(buttonBox)
 
         smartCommitButton.addActionListener {
-            var chosenAccessToken: String?
-            if (accessToken == null || textArea.text != null && accessToken != textArea.text) {
-                if (textArea.text != null) {
-                    chosenAccessToken = textArea.text
-                    localPreferences.saveString(SHARED_PREF_ACCESS_TOKEN_KEY, chosenAccessToken)
-                }
-            }
-            chosenAccessToken = localPreferences.getString(SHARED_PREF_ACCESS_TOKEN_KEY)
-            if (chosenAccessToken != null && cbTerms.isSelected) {
+            val tmpText = textArea.text
+            tmpText.extractAccessToken()?.let {
+                localPreferences.saveString(SHARED_PREF_ACCESS_TOKEN_KEY, tmpText)
                 openContent()
+            } ?: run {
+                project.notifyErrorMessage(
+                    displayId = UUID.randomUUID().toString(),
+                    message = PluginBundle.message("accessTokenInvalid"),
+                    title = PluginBundle.message("error"),
+                    shouldInvokeLater = false
+                )
             }
         }
 
@@ -162,7 +165,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         return Dimension(PREFERRED_WIDTH, super.getPreferredSize().height)
     }
 
-    fun openContent() {
+    private fun openContent() {
         val accessToken = localPreferences.getString(SHARED_PREF_ACCESS_TOKEN_KEY)
         val acceptTerms = localPreferences.getBoolean(SHARED_PREF_ACCEPT_TERMS_KEY)
         if (accessToken != null && acceptTerms) {
@@ -225,6 +228,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
             if (wordCount <= MAX_WORD_COUNT) {
                 val body = openAIService.requestSmartCommitMessage(prompt) {
                     project.notifyNetworkErrorMessage(
+                        message = it.message,
                         shouldInvokeLater = true
                     )
                 }
@@ -240,8 +244,11 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
                     }
                 }
             } else {
-                project.notifyNetworkErrorMessage(
-                    shouldInvokeLater = true
+                project.notifyErrorMessage(
+                    displayId = "",
+                    title = PluginBundle.message("error"),
+                    message = PluginBundle.message("longChangeListTitleError"),
+                    shouldInvokeLater = false,
                 )
             }
         }

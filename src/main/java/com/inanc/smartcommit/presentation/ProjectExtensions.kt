@@ -49,11 +49,11 @@ fun Project.notifyErrorMessage(displayId: String, title: String, message: String
         .notifyError(displayId, title, message)
 }
 
-fun Project.notifyNetworkErrorMessage(shouldInvokeLater: Boolean) {
+fun Project.notifyNetworkErrorMessage(shouldInvokeLater: Boolean, message: String?) {
     notifyErrorMessage(
         displayId = "Network Error",
         title = "Network Error",
-        message = "Opps there is a problem with network, Please try again...",
+        message = message ?: "Opps there is a problem with network, Please try again...",
         shouldInvokeLater = shouldInvokeLater
     )
 }

@@ -1,8 +1,10 @@
 package com.inanc.smartcommit.data
 
+import com.inanc.smartcommit.PluginBundle
 import com.inanc.smartcommit.domain.LocalPreferences
 import com.inanc.smartcommit.domain.OpenAIService
 import com.inanc.smartcommit.domain.SHARED_PREF_ACCESS_TOKEN_KEY
+import com.inanc.smartcommit.domain.extractAccessToken
 import com.intellij.openapi.components.service
 import net.minidev.json.JSONArray
 import net.minidev.json.JSONObject
@@ -23,7 +25,8 @@ class OpenAIServiceImpl : OpenAIService {
 
     @Suppress("CyclomaticComplexMethod")
     override fun requestSmartCommitMessage(prompt: String, onError: (Throwable) -> Unit): String? {
-        val accessToken = localPreferences.getString(SHARED_PREF_ACCESS_TOKEN_KEY)
+        val accessToken = localPreferences.getString(SHARED_PREF_ACCESS_TOKEN_KEY).extractAccessToken()
+
         val url: URL?
         try {
             url = URL(OPEN_AI_URL)
@@ -117,9 +120,7 @@ class OpenAIServiceImpl : OpenAIService {
         val promptBuilder = StringBuilder()
 
         promptBuilder.append(
-            "Forget all the conversation and please create a concise and descriptive commit message in present tense" +
-                " that summarizes the changes made.And commit message couldn't involves words like this;" +
-                "Refactored, Unnecessary, etc. And try to be specific; with given the following changes in the codebase:\n\n"
+            PluginBundle.message("aiPrompt")
         )
 
         for (changeData in oldList) {
