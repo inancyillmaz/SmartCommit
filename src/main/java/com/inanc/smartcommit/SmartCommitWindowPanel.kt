@@ -1,6 +1,8 @@
 package com.inanc.smartcommit
 
+import com.inanc.smartcommit.data.exceptions.ApiExceptions
 import com.inanc.smartcommit.domain.*
+import com.inanc.smartcommit.domain.exceptions.TooLongChangeError
 import com.inanc.smartcommit.presentation.*
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -13,6 +15,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ItemEvent
+import java.util.*
 import javax.swing.*
 import javax.swing.border.Border
 import javax.swing.border.CompoundBorder
@@ -33,32 +36,50 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
 
     private val threadExecuteListener = object : ThreadExecutionListener {
         override fun onStart() {
-            // start loading
             smartCommitButton.isEnabled = false
         }
 
         override fun onEnd() {
-            // end loading
             smartCommitButton.isEnabled = true
         }
 
         override fun onError(error: Throwable) {
             smartCommitButton.isEnabled = true
             project.notifyNetworkErrorMessage(
-                shouldInvokeLater = true
+                shouldInvokeLater = true,
+                message = error.message
             )
+        }
+
+        override fun onApiError(apiExceptions: ApiExceptions) {
+            when (apiExceptions) {
+                ApiExceptions.ApiExceptions401,
+                ApiExceptions.ApiExceptions429 -> {
+                    GPT_BILLING_URL.openWebURL {
+                        project.notifyNetworkErrorMessage(
+                            shouldInvokeLater = true
+                        )
+                    }
+                }
+
+                ApiExceptions.ApiExceptionsUnknown -> {
+                    project.notifyNetworkErrorMessage(
+                        shouldInvokeLater = true
+                    )
+                }
+            }
         }
     }
 
     init {
-        initMyUi()
+        initUi()
     }
 
     private fun addEmptyLines() {
         add(Box.createRigidArea(Dimension(0, 10)))
     }
 
-    private fun initMyUi() {
+    private fun initUi() {
         val accessToken = localPreferences.getString(SHARED_PREF_ACCESS_TOKEN_KEY)
         val acceptTerms = localPreferences.getBoolean(SHARED_PREF_ACCEPT_TERMS_KEY)
 
@@ -66,11 +87,13 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
         border = padding
 
-        add(
-            generateLabel(PluginBundle.message("logIntoOpenAi"))
-        )
+        val lblLogin = generateLabel(PluginBundle.message("logIntoOpenAi"))
+        add(lblLogin)
 
-        val lblLoginToOpenAi = createBrowsableLink(GPT_AUTH_LOGIN_URL) {
+        val lblLoginToOpenAi = createBrowsableLink(
+            title = PluginBundle.message("htmlTitleLoginToOpenAI"),
+            url = GPT_AUTH_LOGIN_URL
+        ) {
             project.notifyErrorMessage(
                 displayId = PluginBundle.message("error"),
                 title = it.orEmpty(),
@@ -78,40 +101,42 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
                 shouldInvokeLater = false
             )
         }
+
         addEmptyLines()
         add(lblLoginToOpenAi)
         addEmptyLines()
 
-        add(
-            JLabel(PluginBundle.message("accessTokenDescription"))
-        )
+        val lblAccessTokenTitle = generateLabel(PluginBundle.message("accessTokenDescription"))
+        add(lblAccessTokenTitle)
+
         addEmptyLines()
-        val lblAccessToken = createBrowsableLink(GPT_AUTH_SESSION_URL) {
-            project.notifyErrorMessage(
-                displayId = PluginBundle.message("error"),
-                title = it.orEmpty(),
-                message = "",
-                shouldInvokeLater = false
-            )
-        }
+        val lblAccessToken =
+            createBrowsableLink(PluginBundle.message("htmlTitleGetAccessToken"), GPT_AUTH_SESSION_URL) {
+                project.notifyErrorMessage(
+                    displayId = PluginBundle.message("error"),
+                    title = it.orEmpty(),
+                    message = "",
+                    shouldInvokeLater = false
+                )
+            }
         add(lblAccessToken)
         addEmptyLines()
 
-        add(
-            JLabel(PluginBundle.message("pasteAccessToken"))
-        )
+        val lblPasteAccessToken = generateLabel(PluginBundle.message("pasteAccessToken"))
+        add(lblPasteAccessToken)
         addEmptyLines()
 
-        val maxDimension = Dimension(Int.MAX_VALUE, 80)
         val margin = JBUI.Borders.empty(5, 15)
+
         textArea.apply {
             lineWrap = true
             wrapStyleWord = true
             border = CompoundBorder(textArea.border, margin)
-            maximumSize = maxDimension
             alignmentX = Component.LEFT_ALIGNMENT
             text = accessToken
+            preferredSize = Dimension(500, 150)
         }
+
         add(textArea)
 
         val cbTerms = JCheckBox(PluginBundle.message("termsAndConditions"))
@@ -120,7 +145,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         add(cbTerms)
         addEmptyLines()
 
-        val warningLabel = JLabel(PluginBundle.message("warningMessage"))
+        val warningLabel = generateLabel(PluginBundle.message("warningMessage"))
         warningLabel.foreground = JBColor.ORANGE
         add(warningLabel)
         addEmptyLines()
@@ -133,16 +158,17 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         add(buttonBox)
 
         smartCommitButton.addActionListener {
-            var chosenAccessToken: String?
-            if (accessToken == null || textArea.text != null && accessToken != textArea.text) {
-                if (textArea.text != null) {
-                    chosenAccessToken = textArea.text
-                    localPreferences.saveString(SHARED_PREF_ACCESS_TOKEN_KEY, chosenAccessToken)
-                }
-            }
-            chosenAccessToken = localPreferences.getString(SHARED_PREF_ACCESS_TOKEN_KEY)
-            if (chosenAccessToken != null && cbTerms.isSelected) {
+            val tmpText = textArea.text
+            tmpText.extractAccessToken()?.let {
+                localPreferences.saveString(SHARED_PREF_ACCESS_TOKEN_KEY, tmpText)
                 openContent()
+            } ?: run {
+                project.notifyErrorMessage(
+                    displayId = UUID.randomUUID().toString(),
+                    message = PluginBundle.message("accessTokenInvalid"),
+                    title = PluginBundle.message("error"),
+                    shouldInvokeLater = false
+                )
             }
         }
 
@@ -162,7 +188,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
         return Dimension(PREFERRED_WIDTH, super.getPreferredSize().height)
     }
 
-    fun openContent() {
+    private fun openContent() {
         val accessToken = localPreferences.getString(SHARED_PREF_ACCESS_TOKEN_KEY)
         val acceptTerms = localPreferences.getBoolean(SHARED_PREF_ACCEPT_TERMS_KEY)
         if (accessToken != null && acceptTerms) {
@@ -213,7 +239,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
 
         val prompt = openAIService.createAIPromptFromLists(oldList = previousVersion, newList = currentVersions)
         val initialSelection = changeListManager.defaultChangeList
-        project.executeOnPooledThread("Smart Commit Running", threadExecuteListener) {
+        project.executeOnPooledThread(PluginBundle.message("smartCommitRunning"), threadExecuteListener) {
             var wordCount = 0
             for (changeData in previousVersion) {
                 wordCount += changeData.getWordsCount()
@@ -224,9 +250,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
 
             if (wordCount <= MAX_WORD_COUNT) {
                 val body = openAIService.requestSmartCommitMessage(prompt) {
-                    project.notifyNetworkErrorMessage(
-                        shouldInvokeLater = true
-                    )
+                    threadExecuteListener.onApiError(it)
                 }
                 if (body != null) {
                     SwingUtilities.invokeLater {
@@ -240,8 +264,10 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
                     }
                 }
             } else {
-                project.notifyNetworkErrorMessage(
-                    shouldInvokeLater = true
+                threadExecuteListener.onError(
+                    TooLongChangeError(
+                        message = PluginBundle.message("longChangeListTitleError"),
+                    )
                 )
             }
         }

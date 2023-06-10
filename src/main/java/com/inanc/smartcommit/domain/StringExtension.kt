@@ -1,5 +1,6 @@
 package com.inanc.smartcommit.domain
 
+import org.json.JSONObject
 import java.awt.Desktop
 import java.io.IOException
 import java.net.URI
@@ -33,4 +34,12 @@ fun String.extractContent(): String? {
     } else {
         this.substring(contentStartIndex, contentEndIndex)
     }
+}
+
+@Suppress("TooGenericExceptionCaught")
+fun String?.extractAccessToken(): String? = try {
+    val jsonObj = JSONObject(this)
+    jsonObj.optString("accessToken", null)
+} catch (_: Exception) {
+    null
 }
