@@ -14,6 +14,7 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.event.ItemEvent
 import java.util.*
 import javax.swing.*
@@ -128,14 +129,22 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
 
         val margin = JBUI.Borders.empty(5, 15)
 
+
         textArea.apply {
             lineWrap = true
             wrapStyleWord = true
             border = CompoundBorder(textArea.border, margin)
             alignmentX = Component.LEFT_ALIGNMENT
             text = accessToken
-            preferredSize = Dimension(500, 150)
         }
+
+// This will ensure that initially textArea takes a reasonable amount of vertical space.
+        val initialHeight = 100 // You can adjust this value as needed
+        textArea.preferredSize = Dimension(500, initialHeight)
+
+// This will ensure that textArea does not grow vertically beyond a maximum height.
+        val maximumHeight = 300 // You can adjust this value as needed
+        textArea.maximumSize = Dimension(Integer.MAX_VALUE, maximumHeight)
 
         add(textArea)
 

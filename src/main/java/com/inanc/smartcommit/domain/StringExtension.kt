@@ -25,15 +25,11 @@ fun String.openWebURL(onError: (errorMessage: String?) -> Unit) {
 }
 
 fun String.extractContent(): String? {
-    val contentKey = "\"content\":\""
-    val contentStartIndex = this.indexOf(contentKey) + contentKey.length
-    val contentEndIndex = this.indexOf("\"", contentStartIndex)
-
-    return if (contentStartIndex < contentKey.length || contentEndIndex == -1) {
-        null
-    } else {
-        this.substring(contentStartIndex, contentEndIndex)
-    }
+    val jsonObject = JSONObject(this)
+    return jsonObject.getJSONArray("choices")
+        .getJSONObject(0)
+        .getJSONObject("message")
+        .getString("content")
 }
 
 @Suppress("TooGenericExceptionCaught")
