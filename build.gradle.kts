@@ -26,7 +26,6 @@ repositories {
 }
 dependencies {
     testImplementation("org.assertj:assertj-core:3.24.2")
-    implementation("org.json:json:20230227")
     implementation("com.google.code.gson:gson:2.8.8")
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
 }
