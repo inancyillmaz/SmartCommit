@@ -268,7 +268,7 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
                             /* changes = */ changes,
                             /* initialSelection = */ initialSelection,
                             /* executor = */ null,
-                            /* comment = */ body.extractContent()
+                            /* comment = */ body.extractContent(project)
                         )
                     }
                 }

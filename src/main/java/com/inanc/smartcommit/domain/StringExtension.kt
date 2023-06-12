@@ -1,5 +1,9 @@
 package com.inanc.smartcommit.domain
 
+import com.google.gson.JsonParser
+import com.inanc.smartcommit.PluginBundle
+import com.inanc.smartcommit.presentation.notifyErrorMessage
+import com.intellij.openapi.project.Project
 import org.json.JSONObject
 import java.awt.Desktop
 import java.io.IOException
@@ -24,18 +28,29 @@ fun String.openWebURL(onError: (errorMessage: String?) -> Unit) {
     }
 }
 
-fun String.extractContent(): String? {
-    val jsonObject = JSONObject(this)
-    return jsonObject.getJSONArray("choices")
-        .getJSONObject(0)
-        .getJSONObject("message")
-        .getString("content")
+fun String.extractContent(project: Project): String? {
+    return try {
+        val jsonObject = JsonParser.parseString(this).asJsonObject
+        jsonObject.getAsJsonArray("choices")
+            .get(0).asJsonObject
+            .getAsJsonObject("message")
+            .get("content").asString
+    } catch (e: Exception) {
+        project.notifyErrorMessage(
+            displayId = PluginBundle.message("error"),
+            title = e.message.toString(),
+            message =  e.message.toString(),
+            shouldInvokeLater = false
+        )
+        null
+    }
 }
+
 
 @Suppress("TooGenericExceptionCaught")
 fun String?.extractAccessToken(): String? = try {
-    val jsonObj = JSONObject(this)
-    jsonObj.optString("accessToken", null)
+    val jsonObj = JsonParser.parseString(this).asJsonObject
+    jsonObj.get("accessToken")?.asString
 } catch (_: Exception) {
     null
 }
