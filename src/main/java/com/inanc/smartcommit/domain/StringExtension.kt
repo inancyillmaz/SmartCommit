@@ -4,7 +4,6 @@ import com.google.gson.JsonParser
 import com.inanc.smartcommit.PluginBundle
 import com.inanc.smartcommit.presentation.notifyErrorMessage
 import com.intellij.openapi.project.Project
-import org.json.JSONObject
 import java.awt.Desktop
 import java.io.IOException
 import java.net.URI
