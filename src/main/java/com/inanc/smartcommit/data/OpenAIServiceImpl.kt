@@ -76,7 +76,7 @@ class OpenAIServiceImpl : OpenAIService {
             return null
         }
         try {
-            outputStream.write(requestBody.toString().toByteArray())
+          val result =  outputStream.write(requestBody.toString().toByteArray())
         } catch (_: IOException) {
             onError(createApiApiExceptions(httpURLConnection.responseCode))
             return null
