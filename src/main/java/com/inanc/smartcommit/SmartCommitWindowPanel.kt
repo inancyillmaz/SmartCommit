@@ -14,7 +14,6 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.FlowLayout
 import java.awt.event.ItemEvent
 import java.util.*
 import javax.swing.*
@@ -56,11 +55,13 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
             when (apiExceptions) {
                 ApiExceptions.ApiExceptions401,
                 ApiExceptions.ApiExceptions429 -> {
-                    GPT_BILLING_URL.openWebURL {
-                        project.notifyNetworkErrorMessage(
-                            shouldInvokeLater = true
-                        )
-                    }
+                    project.notifyWarning(
+                        displayId = UUID.randomUUID().toString(),
+                        title = "You should be enter the billing methods to Open-AI",
+                        message = "You should be enter the billing methods to Open-AI",
+                        link = GPT_BILLING_URL,
+                        shouldInvokeLater = true
+                    )
                 }
 
                 ApiExceptions.ApiExceptionsUnknown -> {
