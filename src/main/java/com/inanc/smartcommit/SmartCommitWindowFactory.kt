@@ -9,7 +9,7 @@ import com.intellij.ui.content.ContentFactory
 class SmartCommitWindowFactory : ToolWindowFactory, ToolWindowManagerListener {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val contentFactory = ContentFactory.SERVICE.getInstance()
+        val contentFactory = ContentFactory.getInstance()
         val content = contentFactory.createContent(SmartCommitWindowPanel(project), "SmartCommit", false)
         toolWindow.contentManager.addContent(content)
     }
