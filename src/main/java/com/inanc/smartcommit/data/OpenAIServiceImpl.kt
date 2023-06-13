@@ -32,15 +32,15 @@ class OpenAIServiceImpl : OpenAIService {
         try {
             url = URL(OPEN_AI_URL)
         } catch (e: MalformedURLException) {
-            onError(ApiExceptions.ApiExceptionsUnknown)
+            onError(ApiExceptions.ApiExceptionsUnknown(e.toString()))
             return null
         }
 
         val httpURLConnection: HttpURLConnection?
         try {
             httpURLConnection = url.openConnection() as HttpURLConnection
-        } catch (_: IOException) {
-            onError(ApiExceptions.ApiExceptionsUnknown)
+        } catch (e: IOException) {
+            onError(ApiExceptions.ApiExceptionsUnknown(e.message ?: 998.toString()))
             return null
         }
 
@@ -48,8 +48,8 @@ class OpenAIServiceImpl : OpenAIService {
         httpURLConnection.setRequestProperty("Authorization", "Bearer $accessToken")
         try {
             httpURLConnection.requestMethod = "POST"
-        } catch (_: ProtocolException) {
-            onError(ApiExceptions.ApiExceptionsUnknown)
+        } catch (protocolException: ProtocolException) {
+            onError(ApiExceptions.ApiExceptionsUnknown(httpURLConnection.responseMessage))
             return null
         }
         httpURLConnection.doOutput = true
@@ -72,25 +72,25 @@ class OpenAIServiceImpl : OpenAIService {
         try {
             outputStream = httpURLConnection.outputStream
         } catch (_: IOException) {
-            onError(createApiApiExceptions(httpURLConnection.responseCode))
+            onError(createApiApiExceptions(httpURLConnection.responseCode, httpURLConnection.responseMessage))
             return null
         }
         try {
-          val result =  outputStream.write(requestBody.toString().toByteArray())
+            outputStream.write(requestBody.toString().toByteArray())
         } catch (_: IOException) {
-            onError(createApiApiExceptions(httpURLConnection.responseCode))
+            onError(createApiApiExceptions(httpURLConnection.responseCode, httpURLConnection.responseMessage))
             return null
         }
         try {
             outputStream.flush()
         } catch (_: IOException) {
-            onError(createApiApiExceptions(httpURLConnection.responseCode))
+            onError(createApiApiExceptions(httpURLConnection.responseCode, httpURLConnection.responseMessage))
             return null
         }
         try {
             outputStream.close()
         } catch (_: IOException) {
-            onError(createApiApiExceptions(httpURLConnection.responseCode))
+            onError(createApiApiExceptions(httpURLConnection.responseCode, httpURLConnection.responseMessage))
             return null
         }
 
@@ -98,7 +98,7 @@ class OpenAIServiceImpl : OpenAIService {
         try {
             bufferedReader = BufferedReader(InputStreamReader(httpURLConnection.inputStream, "utf-8"))
         } catch (_: IOException) {
-            onError(createApiApiExceptions(httpURLConnection.responseCode))
+            onError(createApiApiExceptions(httpURLConnection.responseCode, httpURLConnection.responseMessage))
             return null
         }
 
@@ -110,7 +110,7 @@ class OpenAIServiceImpl : OpenAIService {
                 stringBuilder.append(line).append("\n")
             }
         } catch (_: IOException) {
-            onError(ApiExceptions.ApiExceptionsUnknown)
+            onError(ApiExceptions.ApiExceptionsUnknown(httpURLConnection.responseMessage))
             return null
         }
 
@@ -134,11 +134,11 @@ class OpenAIServiceImpl : OpenAIService {
         return promptBuilder.toString()
     }
 
-    private fun createApiApiExceptions(code: Int): ApiExceptions {
+    private fun createApiApiExceptions(code: Int, message: String?): ApiExceptions {
         return when (code) {
             429 -> ApiExceptions.ApiExceptions429
             401 -> ApiExceptions.ApiExceptions401
-            else -> ApiExceptions.ApiExceptionsUnknown
+            else -> ApiExceptions.ApiExceptionsUnknown(message = message ?: "999")
         }
     }
 }

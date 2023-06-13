@@ -64,8 +64,9 @@ class SmartCommitWindowPanel(private val project: Project) : JPanel() {
                     )
                 }
 
-                ApiExceptions.ApiExceptionsUnknown -> {
+               is ApiExceptions.ApiExceptionsUnknown -> {
                     project.notifyNetworkErrorMessage(
+                        message = apiExceptions.message,
                         shouldInvokeLater = true
                     )
                 }
